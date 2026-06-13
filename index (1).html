@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WE ARE 26 — لعبة التوقعات</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- الصفحة الرئيسية -->
+    <section id="home" class="screen active">
+      <h1 class="title">WE ARE 26</h1>
+      <p class="tagline">لعبة توقعات كأس العالم</p>
+      <div class="card home-card">
+        <label for="your-name" class="label">اسمك</label>
+        <input type="text" id="your-name" placeholder="اكتب اسمك هنا" maxlength="20">
+        <div class="actions">
+          <button id="create-room" class="btn primary">إنشاء غرفة</button>
+          <button id="join-room-btn" class="btn secondary">انضمام</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- إدخال كود الانضمام -->
+    <section id="join" class="screen">
+      <h2 class="title">أدخل كود الغرفة</h2>
+      <p class="subtitle">ادخل اسمك والكود المكون من 6 أرقام</p>
+      <div class="card join-card">
+        <label for="join-name" class="label">اسمك</label>
+        <input type="text" id="join-name" placeholder="اسمك" maxlength="20">
+        <label for="join-code" class="label">كود الغرفة</label>
+        <input type="number" id="join-code" placeholder="000000" maxlength="6">
+        <div class="actions">
+          <button id="join-room-submit" class="btn primary">انضم</button>
+          <button id="join-back" class="btn ghost">رجوع</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- الردهة (اللعبة قبل بدء التوقعات) -->
+    <section id="lobby" class="screen">
+      <h2 class="title">غرفة التوقعات</h2>
+      <div class="card lobby-card">
+        <p><strong>الكود:</strong> <span id="room-code-display"></span></p>
+        <h3 class="subtitle">اللاعبون</h3>
+        <ul id="players-list" class="players-list"></ul>
+        <p id="lobby-message" class="message"></p>
+        <div class="lobby-actions">
+          <button id="start-predictions" class="btn primary">بدء التوقعات</button>
+          <button id="exit-room" class="btn ghost">خروج</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحة التوقعات -->
+    <section id="predict" class="screen">
+      <h2 class="title">المباراة <span id="match-counter"></span></h2>
+      <div class="card match-card">
+        <div class="teams">
+          <div class="team" id="team-home">
+            <span class="flag" id="flag-home"></span>
+            <span class="name" id="name-home"></span>
+          </div>
+          <div class="vs">VS</div>
+          <div class="team" id="team-away">
+            <span class="flag" id="flag-away"></span>
+            <span class="name" id="name-away"></span>
+          </div>
+        </div>
+        <div class="predict-controls">
+          <label class="winner-label">اختيار الفائز</label>
+          <div class="winner-options">
+            <label>
+              <input type="radio" name="winner" id="winner-home" value="home">
+              <span id="winner-home-name">—</span>
+            </label>
+            <label>
+              <input type="radio" name="winner" id="winner-draw" value="draw">
+              <span>تعادل</span>
+            </label>
+            <label>
+              <input type="radio" name="winner" id="winner-away" value="away">
+              <span id="winner-away-name">—</span>
+            </label>
+          </div>
+          <label class="score-label">النتيجة المتوقعة</label>
+          <div class="score-inputs">
+            <input type="number" id="score-home" min="0" max="9" value="0">
+            <span class="colon">:</span>
+            <input type="number" id="score-away" min="0" max="9" value="0">
+          </div>
+        </div>
+        <div class="predict-actions">
+          <button id="save-prediction" class="btn primary">حفظ التوقع</button>
+          <button id="skip-prediction" class="btn ghost">تجاوز</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحة النتائج والجدول -->
+    <section id="results" class="screen">
+      <h2 class="title">النتائج النهائية</h2>
+      <div class="card results-card">
+        <h3 class="subtitle">الترتيب</h3>
+        <ol id="leaderboard" class="leaderboard"></ol>
+        <h3 class="subtitle">تفاصيل الجولات</h3>
+        <div id="history" class="history"></div>
+        <button id="play-again" class="btn primary">جولة جديدة</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

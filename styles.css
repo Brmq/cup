@@ -1,0 +1,328 @@
+/*
+ * Global styles for WE ARE 26 prediction game
+ * Designed with Arabic (RTL) and responsive layout in mind.
+ */
+
+/* Root variables */
+:root {
+  --color-red: #ce1126;
+  --color-blue: #0052cc;
+  --color-gold: #ffb81c;
+  --color-dark: #0b0b0b;
+  --color-light: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.7);
+  --color-card-bg: rgba(255, 255, 255, 0.06);
+  --border-radius: 16px;
+  --transition: 0.2s ease;
+}
+
+/* Basic reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(135deg, var(--color-dark) 0%, #101a33 100%);
+  color: var(--color-light);
+  direction: rtl;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* App container ensures screens stack on top of each other */
+#app {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.screen {
+  display: none;
+  animation: fade-in 0.4s ease forwards;
+}
+.screen.active {
+  display: block;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Typography */
+.title {
+  font-size: 2rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--color-gold);
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+  color: var(--color-muted);
+}
+
+.tagline {
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--color-muted);
+}
+
+/* Cards */
+.card {
+  background: var(--color-card-bg);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.home-card,
+.join-card,
+.lobby-card,
+.match-card,
+.results-card {
+  margin: 0 auto;
+  margin-top: 16px;
+  max-width: 100%;
+}
+
+/* Input and labels */
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-light);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+input:focus {
+  border-color: var(--color-gold);
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter var(--transition), transform var(--transition);
+  border: none;
+  color: var(--color-light);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--color-red), #900818);
+}
+
+.btn.secondary {
+  background: linear-gradient(135deg, var(--color-blue), #01348a);
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+}
+
+.btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+/* Actions container */
+.actions,
+.lobby-actions,
+.predict-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Lobby list */
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.players-list li {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.players-list li .status {
+  font-size: 0.9rem;
+  color: var(--color-gold);
+}
+
+/* Match page styles */
+.match-card .teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.team {
+  text-align: center;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: var(--border-radius);
+  transition: background var(--transition), transform var(--transition);
+}
+
+.team:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+.team.selected {
+  background: rgba(255, 184, 28, 0.2);
+  border: 1px solid var(--color-gold);
+}
+
+.flag {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.name {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.vs {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--color-muted);
+}
+
+.predict-controls {
+  margin-top: 14px;
+}
+
+.winner-label,
+.score-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.winner-options {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.winner-options label {
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.winner-options input[type="radio"] {
+  margin-bottom: 4px;
+}
+
+.score-inputs {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  font-weight: 900;
+  font-size: 1.6rem;
+}
+
+.score-inputs input[type="number"] {
+  width: 70px;
+  text-align: center;
+  font-size: 1.4rem;
+}
+
+.score-inputs .colon {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--color-muted);
+}
+
+/* Results */
+.leaderboard {
+  margin-bottom: 16px;
+  list-style: none;
+  padding: 0;
+}
+
+.leaderboard li {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: var(--border-radius);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+}
+
+.history {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 12px;
+  border-radius: var(--border-radius);
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+/* Utility */
+.message {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .title {
+    font-size: 1.6rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px 14px;
+  }
+}

@@ -1,0 +1,471 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset178 GeezaPro;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh9000\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 /*\
+ * WE ARE 26 prediction game logic\
+ * This script manages the creation/joining of rooms, predictions,\
+ * scoring and displaying results. It uses localStorage as a simple\
+ * persistence layer so that multiple players on the same device can\
+ * join the same room and see each other's progress. It is designed\
+ * for demonstration purposes and is not a replacement for a real-time\
+ * backend.\
+ */\
+\
+(function () \{\
+  'use strict';\
+\
+  /**\
+   * Matches list. Each match has an id, group, home team, away team,\
+   * and their corresponding flags. You can modify this list to add\
+   * or change matches.\
+   */\
+  const MATCHES = [\
+    \{ id: 1, group: 'B', home: '\'df\'e4\'cf\'c7', away: '\'c7\'e1\'c8\'e6\'d3\'e4\'c9 \'e6\'c7\'e1\'e5\'d1\'d3\'df', fh: '\uc0\u55356 \u56808 \u55356 \u56806 ', fa: '\u55356 \u56807 \u55356 \u56806 ' \},\
+    \{ id: 2, group: 'C', home: '\'c7\'e1\'c8\'d1\'c7\'d2\'ed\'e1', away: '\'c7\'e1\'e3\'db\'d1\'c8', fh: '\uc0\u55356 \u56807 \u55356 \u56823 ', fa: '\u55356 \u56818 \u55356 \u56806 ' \},\
+    \{ id: 3, group: 'F', home: '\'e5\'e6\'e1\'e4\'cf\'c7', away: '\'c7\'e1\'ed\'c7\'c8\'c7\'e4', fh: '\uc0\u55356 \u56819 \u55356 \u56817 ', fa: '\u55356 \u56815 \u55356 \u56821 ' \},\
+    \{ id: 4, group: 'J', home: '\'c7\'e1\'c3\'d1\'cc\'e4\'ca\'ed\'e4', away: '\'c7\'e1\'cc\'d2\'c7\'c6\'d1', fh: '\uc0\u55356 \u56806 \u55356 \u56823 ', fa: '\u55356 \u56809 \u55356 \u56831 ' \},\
+    \{ id: 5, group: 'I', home: '\'dd\'d1\'e4\'d3\'c7', away: '\'c7\'e1\'d3\'e4\'db\'c7\'e1', fh: '\uc0\u55356 \u56811 \u55356 \u56823 ', fa: '\u55356 \u56824 \u55356 \u56819 ' \},\
+    \{ id: 6, group: 'L', home: '\'c5\'d3\'c8\'c7\'e4\'ed\'c7', away: '\'c5\'ed\'d8\'c7\'e1\'ed\'c7', fh: '\uc0\u55356 \u56810 \u55356 \u56824 ', fa: '\u55356 \u56814 \u55356 \u56825 ' \},\
+    \{ id: 7, group: 'E', home: '\'c3\'e1\'e3\'c7\'e4\'ed\'c7', away: '\'c8\'e6\'e1\'e4\'cf\'c7', fh: '\uc0\u55356 \u56809 \u55356 \u56810 ', fa: '\u55356 \u56821 \u55356 \u56817 ' \},\
+    \{ id: 8, group: 'H', home: '\'c5\'e4\'cc\'e1\'ca\'d1\'c7', away: '\'e6\'ed\'e1\'d2', fh: '\uc0\u55356 \u57332 ', fa: '\u55356 \u57332 ' \},\
+    \{ id: 9, group: 'A', home: '\'c7\'e1\'e3\'df\'d3\'ed\'df', away: '\'df\'e6\'d1\'ed\'c7 \'c7\'e1\'cc\'e4\'e6\'c8\'ed\'c9', fh: '\uc0\u55356 \u56818 \u55356 \u56829 ', fa: '\u55356 \u56816 \u55356 \u56823 ' \},\
+    \{ id: 10, group: 'H', home: '\'c3\'e6\'d1\'e6\'db\'e6\'c7\'ed', away: '\'c7\'e1\'c5\'df\'e6\'c7\'cf\'e6\'d1', fh: '\uc0\u55356 \u56826 \u55356 \u56830 ', fa: '\u55356 \u56810 \u55356 \u56808 ' \}\
+  ];\
+\
+  /**\
+   * State object holds the current player and room context.\
+   */\
+  const state = \{\
+    playerName: null,\
+    roomCode: null,\
+    matchIndex: 0,\
+    currentRoom: null\
+  \};\
+\
+  /**\
+   * Utility functions\
+   */\
+  function $(id) \{\
+    return document.getElementById(id);\
+  \}\
+\
+  function showScreen(name) \{\
+    document.querySelectorAll('.screen').forEach((sec) => \{\
+      sec.classList.remove('active');\
+    \});\
+    const target = document.getElementById(name);\
+    if (target) target.classList.add('active');\
+  \}\
+\
+  function generateCode() \{\
+    return Math.floor(100000 + Math.random() * 900000).toString();\
+  \}\
+\
+  function loadRooms() \{\
+    try \{\
+      return JSON.parse(localStorage.getItem('we26_rooms') || '\{\}');\
+    \} catch (err) \{\
+      console.warn('Error loading rooms', err);\
+      return \{\};\
+    \}\
+  \}\
+\
+  function saveRooms(rooms) \{\
+    localStorage.setItem('we26_rooms', JSON.stringify(rooms));\
+  \}\
+\
+  /**\
+   * Creates a new room and saves it to localStorage. The host becomes\
+   * the first player and the room has empty predictions and no results\
+   * yet. We set a lockAt timestamp 24 hours from now for demonstration.\
+   */\
+  function createRoom(playerName) \{\
+    const rooms = loadRooms();\
+    const code = generateCode();\
+    const lockAt = Date.now() + 24 * 60 * 60 * 1000; // 24h from now\
+    rooms[code] = \{\
+      code,\
+      createdAt: Date.now(),\
+      lockAt,\
+      players: [playerName],\
+      predictions: \{\},\
+      results: null\
+    \};\
+    saveRooms(rooms);\
+    return code;\
+  \}\
+\
+  /**\
+   * Retrieves a room by code. Returns undefined if not found.\
+   */\
+  function getRoom(code) \{\
+    const rooms = loadRooms();\
+    return rooms[code];\
+  \}\
+\
+  /**\
+   * Updates a room record in localStorage.\
+   */\
+  function updateRoom(code, updater) \{\
+    const rooms = loadRooms();\
+    const room = rooms[code];\
+    if (!room) return;\
+    const updated = typeof updater === 'function' ? updater(\{ ...room \}) : updater;\
+    rooms[code] = \{ ...room, ...updated \};\
+    saveRooms(rooms);\
+  \}\
+\
+  /**\
+   * Adds a player to the room's players list if not already present.\
+   */\
+  function addPlayerToRoom(code, playerName) \{\
+    updateRoom(code, (room) => \{\
+      if (!room.players.includes(playerName)) \{\
+        room.players.push(playerName);\
+      \}\
+      return room;\
+    \});\
+  \}\
+\
+  /**\
+   * Save a player's predictions for a room. Predictions should be an array\
+   * of objects with matchId, winner, homeScore, awayScore.\
+   */\
+  function savePredictions(code, playerName, predictions) \{\
+    updateRoom(code, (room) => \{\
+      room.predictions[playerName] = predictions;\
+      return room;\
+    \});\
+  \}\
+\
+  /**\
+   * Checks if all players in the room have submitted predictions (i.e.\
+   * predictions count equals players count).\
+   */\
+  function allPlayersPredicted(room) \{\
+    return room.players.every((p) => \{\
+      return Array.isArray(room.predictions[p]) && room.predictions[p].length === MATCHES.length;\
+    \});\
+  \}\
+\
+  /**\
+   * Generates actual match results randomly. Each match result has winner,\
+   * homeScore and awayScore.\
+   */\
+  function generateActualResults() \{\
+    return MATCHES.map(() => \{\
+      let home = Math.floor(Math.random() * 5);\
+      let away = Math.floor(Math.random() * 5);\
+      let winner;\
+      if (home > away) winner = 'home';\
+      else if (away > home) winner = 'away';\
+      else winner = 'draw';\
+      return \{ winner, homeScore: home, awayScore: away \};\
+    \});\
+  \}\
+\
+  /**\
+   * Calculate points for each player given predictions and actual results.\
+   * Returns an object mapping playerName to points and correct count.\
+   */\
+  function calculateScores(room) \{\
+    const results = room.results;\
+    const scores = \{\};\
+    room.players.forEach((p) => \{\
+      scores[p] = \{ points: 0, correct: 0 \};\
+      const preds = room.predictions[p] || [];\
+      preds.forEach((pred, idx) => \{\
+        const actual = results[idx];\
+        if (!actual) return;\
+        if (pred.winner === actual.winner) \{\
+          scores[p].points += 10;\
+          scores[p].correct++;\
+          if (pred.homeScore === actual.homeScore && pred.awayScore === actual.awayScore) \{\
+            scores[p].points += 20;\
+          \}\
+        \}\
+      \});\
+    \});\
+    return scores;\
+  \}\
+\
+  /**\
+   * Event handlers and UI updates\
+   */\
+  function attachEventHandlers() \{\
+    // Home actions\
+    $('create-room').addEventListener('click', () => \{\
+      const name = $('your-name').value.trim();\
+      if (!name) \{\
+        alert('\'d1\'cc\'c7\'c1\'f0 \'c7\'df\'ca\'c8 \'c7\'d3\'e3\'df');\
+        return;\
+      \}\
+      state.playerName = name;\
+      const code = createRoom(name);\
+      state.roomCode = code;\
+      state.currentRoom = getRoom(code);\
+      showLobby();\
+    \});\
+\
+    $('join-room-btn').addEventListener('click', () => \{\
+      showScreen('join');\
+    \});\
+\
+    $('join-back').addEventListener('click', () => \{\
+      showScreen('home');\
+    \});\
+\
+    $('join-room-submit').addEventListener('click', () => \{\
+      const name = $('join-name').value.trim();\
+      const code = $('join-code').value.trim();\
+      if (!name || !code) \{\
+        alert('\'d1\'cc\'c7\'c1\'f0 \'c7\'cf\'ce\'e1 \'c7\'d3\'e3\'df \'e6\'c7\'e1\'df\'e6\'cf');\
+        return;\
+      \}\
+      const room = getRoom(code);\
+      if (!room) \{\
+        alert('\'c7\'e1\'df\'e6\'cf \'db\'ed\'d1 \'d5\'cd\'ed\'cd');\
+        return;\
+      \}\
+      state.playerName = name;\
+      state.roomCode = code;\
+      addPlayerToRoom(code, name);\
+      state.currentRoom = getRoom(code);\
+      showLobby();\
+    \});\
+\
+    $('exit-room').addEventListener('click', () => \{\
+      // Simply go back to home without deleting room\
+      state.playerName = null;\
+      state.roomCode = null;\
+      state.currentRoom = null;\
+      showScreen('home');\
+    \});\
+\
+    $('start-predictions').addEventListener('click', () => \{\
+      // Only host can start predictions and only when at least 1 other player joined\
+      if (!state.currentRoom) return;\
+      const room = state.currentRoom;\
+      if (room.players.length < 2) \{\
+        alert('\'ed\'cc\'c8 \'e6\'cc\'e6\'cf \'e1\'c7\'da\'c8\'ed\'e4 \'da\'e1\'ec \'c7\'e1\'c3\'de\'e1 \'e1\'c8\'cf\'c1 \'c7\'e1\'ca\'e6\'de\'da\'c7\'ca');\
+        return;\
+      \}\
+      // If results already exist, skip predictions and show results\
+      if (room.results) \{\
+        showResults();\
+      \} else \{\
+        // Reset match index and start predictions\
+        state.matchIndex = 0;\
+        showPredictionPage();\
+      \}\
+    \});\
+\
+    $('save-prediction').addEventListener('click', () => \{\
+      handleSavePrediction();\
+    \});\
+\
+    $('skip-prediction').addEventListener('click', () => \{\
+      // Treat skip as 0-0 draw prediction\
+      $('winner-draw').checked = true;\
+      $('score-home').value = 0;\
+      $('score-away').value = 0;\
+      handleSavePrediction();\
+    \});\
+\
+    $('play-again').addEventListener('click', () => \{\
+      // Clear predictions and results then go back to lobby\
+      updateRoom(state.roomCode, (room) => \{\
+      room.predictions = \{\};\
+      room.results = null;\
+      return room;\
+      \});\
+      state.currentRoom = getRoom(state.roomCode);\
+      showLobby();\
+    \});\
+  \}\
+\
+  /**\
+   * Populate and show the lobby screen.\
+   */\
+  function showLobby() \{\
+    state.currentRoom = getRoom(state.roomCode);\
+    const room = state.currentRoom;\
+    if (!room) \{\
+      alert('\'c7\'e1\'db\'d1\'dd\'c9 \'db\'ed\'d1 \'e3\'e6\'cc\'e6\'cf\'c9');\
+      showScreen('home');\
+      return;\
+    \}\
+    // Display room code\
+    $('room-code-display').textContent = room.code;\
+    // List players and their prediction status\
+    const list = $('players-list');\
+    list.innerHTML = '';\
+    room.players.forEach((p) => \{\
+      const li = document.createElement('li');\
+      li.textContent = p;\
+      const statusSpan = document.createElement('span');\
+      statusSpan.classList.add('status');\
+      if (room.predictions[p] && room.predictions[p].length === MATCHES.length) \{\
+        statusSpan.textContent = '\uc0\u10004 \u65039 ';\
+      \} else \{\
+        statusSpan.textContent = '\uc0\u8987 ';\
+      \}\
+      li.appendChild(statusSpan);\
+      list.appendChild(li);\
+    \});\
+    // Show message\
+    const msg = $('lobby-message');\
+    if (room.results) \{\
+      msg.textContent = '\'ca\'e3 \'cd\'d3\'c7\'c8 \'c7\'e1\'e4\'ca\'c7\'c6\'cc\'a1 \'ed\'e3\'df\'e4\'df \'da\'d1\'d6\'e5\'c7.';\
+    \} else if (allPlayersPredicted(room)) \{\
+      msg.textContent = '\'cc\'e3\'ed\'da \'c7\'e1\'e1\'c7\'da\'c8\'ed\'e4 \'c3\'df\'e3\'e1\'e6\'c7 \'c7\'e1\'ca\'e6\'de\'da\'c7\'ca. \'ed\'e3\'df\'e4\'df \'c7\'cd\'ca\'d3\'c7\'c8 \'c7\'e1\'e4\'ca\'c7\'c6\'cc.';\
+    \} else \{\
+      msg.textContent = '\'c7\'e4\'ca\'d9\'d1 \'cd\'ca\'ec \'ed\'df\'e3\'e1 \'c7\'e1\'cc\'e3\'ed\'da \'c7\'e1\'ca\'e6\'de\'da\'c7\'ca.';\
+    \}\
+    // Show or hide start button\
+    const startBtn = $('start-predictions');\
+    // Only host (first player) can start predictions or results\
+    if (state.playerName === room.players[0]) \{\
+      startBtn.style.display = 'inline-block';\
+      if (room.results) \{\
+        startBtn.textContent = '\'da\'d1\'d6 \'c7\'e1\'e4\'ca\'c7\'c6\'cc';\
+      \} else if (allPlayersPredicted(room)) \{\
+        startBtn.textContent = '\'c7\'cd\'ca\'d3\'c7\'c8 \'c7\'e1\'e4\'ca\'c7\'c6\'cc';\
+      \} else \{\
+        startBtn.textContent = '\'c8\'cf\'c1 \'c7\'e1\'ca\'e6\'de\'da\'c7\'ca';\
+      \}\
+    \} else \{\
+      startBtn.style.display = 'none';\
+    \}\
+    showScreen('lobby');\
+  \}\
+\
+  /**\
+   * Show prediction page for current match index.\
+   */\
+  function showPredictionPage() \{\
+    const match = MATCHES[state.matchIndex];\
+    $('match-counter').textContent = `$\{state.matchIndex + 1\} / $\{MATCHES.length\}`;\
+    $('flag-home').textContent = match.fh;\
+    $('name-home').textContent = match.home;\
+    $('flag-away').textContent = match.fa;\
+    $('name-away').textContent = match.away;\
+    $('winner-home-name').textContent = match.home;\
+    $('winner-away-name').textContent = match.away;\
+    // Reset radio selection\
+    document.querySelectorAll('input[name="winner"]').forEach((inp) => \{\
+      inp.checked = false;\
+    \});\
+    // Reset scores\
+    $('score-home').value = 0;\
+    $('score-away').value = 0;\
+    showScreen('predict');\
+  \}\
+\
+  /**\
+   * Save current prediction and move to next match or finish.\
+   */\
+  function handleSavePrediction() \{\
+    const room = state.currentRoom;\
+    if (!room) return;\
+    // Determine winner\
+    const winnerInput = document.querySelector('input[name="winner"]:checked');\
+    const winner = winnerInput ? winnerInput.value : null;\
+    const homeScore = parseInt($('score-home').value, 10);\
+    const awayScore = parseInt($('score-away').value, 10);\
+    if (!winner) \{\
+      alert('\'c7\'ce\'ca\'d1 \'c7\'e1\'dd\'c7\'c6\'d2 \'c3\'e6 \'c7\'e1\'ca\'da\'c7\'cf\'e1');\
+      return;\
+    \}\
+    // Build prediction record\
+    const pred = \{\
+      matchId: MATCHES[state.matchIndex].id,\
+      winner,\
+      homeScore,\
+      awayScore\
+    \};\
+    // Append to existing predictions for this player\
+    let preds = room.predictions[state.playerName] || [];\
+    preds[state.matchIndex] = pred;\
+    savePredictions(state.roomCode, state.playerName, preds);\
+    state.currentRoom = getRoom(state.roomCode);\
+    // Move to next match or finish\
+    state.matchIndex++;\
+    if (state.matchIndex < MATCHES.length) \{\
+      showPredictionPage();\
+    \} else \{\
+      // finished predictions; go back to lobby\
+      showLobby();\
+    \}\
+  \}\
+\
+  /**\
+   * Generate results (only by host) and compute scores, then show them.\
+   */\
+  function computeResultsIfNeeded() \{\
+    // Only host can compute results\
+    const room = state.currentRoom;\
+    if (!room || state.playerName !== room.players[0]) return;\
+    if (room.results) return; // Already computed\
+    // Generate actual results randomly\
+    const actualResults = generateActualResults();\
+    updateRoom(state.roomCode, (r) => \{\
+      r.results = actualResults;\
+      return r;\
+    \});\
+    state.currentRoom = getRoom(state.roomCode);\
+  \}\
+\
+  /**\
+   * Show final results with leaderboard and history.\
+   */\
+  function showResults() \{\
+    const room = state.currentRoom;\
+    if (!room) return;\
+    // If host and results not yet computed but all predicted, compute now\
+    if (!room.results && state.playerName === room.players[0] && allPlayersPredicted(room)) \{\
+      computeResultsIfNeeded();\
+    \}\
+    // Compute scores\
+    const scores = calculateScores(room);\
+    const leaderboard = Object.entries(scores).sort((a, b) => b[1].points - a[1].points);\
+    const listEl = $('leaderboard');\
+    listEl.innerHTML = '';\
+    leaderboard.forEach(([player, data], idx) => \{\
+      const li = document.createElement('li');\
+      li.textContent = `$\{idx + 1\}. $\{player\}`;\
+      const span = document.createElement('span');\
+      span.textContent = `$\{data.points\} \'e4\'de\'d8\'c9`;\
+      li.appendChild(span);\
+      listEl.appendChild(li);\
+    \});\
+    // Build history: for each match show prediction of each player and actual result\
+    const histDiv = $('history');\
+    histDiv.innerHTML = '';\
+    MATCHES.forEach((match, idx) => \{\
+      const actual = room.results ? room.results[idx] : null;\
+      const title = document.createElement('h4');\
+      title.textContent = `$\{match.home\} $\{actual ? actual.homeScore : '?'\} - $\{actual ? actual.awayScore : '?'\} $\{match.away\}`;\
+      histDiv.appendChild(title);\
+      room.players.forEach((p) => \{\
+        const pred = (room.predictions[p] || [])[idx];\
+        const div = document.createElement('div');\
+        div.textContent = `$\{p\}: $\{pred ? pred.homeScore : '-'\}-$\{pred ? pred.awayScore : '-'\} ( $\{pred ? pred.winner === 'home' ? match.home : pred.winner === 'away' ? match.away : '\'ca\'da\'c7\'cf\'e1' : '\'97'\} )`;\
+        histDiv.appendChild(div);\
+      \});\
+      const sep = document.createElement('hr');\
+      histDiv.appendChild(sep);\
+    \});\
+    showScreen('results');\
+  \}\
+\
+  // Run initialization after DOM ready\
+  document.addEventListener('DOMContentLoaded', () => \{\
+    attachEventHandlers();\
+  \});\
+\
+\})();}
