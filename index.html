@@ -1,116 +1,1030 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WE ARE 26 — لعبة التوقعات</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WE ARE 26 — تحدي التوقعات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#ce1126;
+  --blue:#0052cc;
+  --gold:#ffb81c;
+  --dark:#0b0b0b;
+  --light:#ffffff;
+  --muted:rgba(255,255,255,.78);
+  --card:rgba(255,255,255,.06);
+  --card2:rgba(255,255,255,.10);
+  --green:#2ecc71;
+  --radius:16px;
+  --tr:.2s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Cairo',sans-serif;
+  background:linear-gradient(135deg,var(--dark) 0%,#101a33 100%);
+  color:var(--light);
+  direction:rtl;
+  min-height:100vh;
+  padding:16px;
+}
+#app{max-width:1060px;margin:0 auto}
+.screen{display:none;animation:fadein .4s ease}
+.screen.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.title{font-size:2.1rem;font-weight:900;text-align:center;color:var(--gold);margin-bottom:4px}
+.tagline{text-align:center;color:var(--muted);margin-bottom:20px}
+
+.card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--radius);
+  padding:18px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 28px rgba(0,0,0,.35);
+}
+
+/* ===== شاشة من أنت ===== */
+#who .card{max-width:420px;margin:0 auto;text-align:center}
+#who h2{margin-bottom:14px}
+.who-btns{display:flex;flex-direction:column;gap:12px}
+.who-btn{
+  font-family:inherit;font-size:1.25rem;font-weight:800;color:var(--light);
+  padding:16px;border:none;border-radius:var(--radius);cursor:pointer;
+  background:linear-gradient(135deg,var(--red),#900818);
+  transition:transform var(--tr),filter var(--tr);
+}
+.who-btn:nth-child(2){background:linear-gradient(135deg,var(--blue),#01348a)}
+.who-btn:nth-child(3){background:linear-gradient(135deg,#0a7d43,#065c31)}
+.who-btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.who-note{margin-top:14px;font-size:.85rem;color:var(--muted)}
+
+/* ===== الهيدر ===== */
+header.me{
+  text-align:center;margin-bottom:14px;padding:20px;
+  background:linear-gradient(135deg,rgba(255,184,28,.14),rgba(255,255,255,.05));
+  border:1px solid rgba(255,184,28,.35);border-radius:var(--radius);
+  position:relative;
+}
+.greet{font-size:1.35rem;font-weight:900}
+.mypts{font-size:2.4rem;font-weight:900;color:var(--gold);line-height:1.15}
+.mypts small{font-size:1rem;color:var(--muted);font-weight:700}
+.head-actions{position:absolute;top:10px;inset-inline-start:10px;display:flex;gap:8px}
+.icon-btn{
+  font-family:inherit;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  color:var(--light);border-radius:12px;padding:8px 12px;font-size:.8rem;font-weight:700;cursor:pointer;
+  transition:background var(--tr);min-height:36px;
+}
+.icon-btn:hover{background:rgba(255,255,255,.2)}
+
+/* ===== التخطيط: داشبورد يمين + محتوى ===== */
+.layout{display:grid;grid-template-columns:270px 1fr;gap:14px;align-items:start}
+.content{min-width:0}
+
+/* الداشبورد */
+#dash .card{padding:14px}
+#dash h3{color:var(--gold);font-size:1rem;margin-bottom:8px}
+.wizard{
+  display:flex;align-items:center;gap:10px;background:rgba(255,184,28,.12);
+  border:1px solid rgba(255,184,28,.4);border-radius:12px;padding:10px;margin-bottom:12px;
+}
+.wizard .hat{font-size:1.7rem}
+.wizard .wname{font-weight:900;font-size:1.05rem}
+.wizard .wpts{font-size:.85rem;color:var(--gold);font-weight:800}
+.correct-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.correct-list li{
+  background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);
+  border-radius:10px;padding:7px 9px;font-size:.8rem;line-height:1.5;
+}
+.correct-list .cpts{color:var(--green);font-weight:900}
+.dash-empty{font-size:.82rem;color:var(--muted)}
+.correct-list li.dash-empty{background:none;border:none}
+
+/* توست التأكيد */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1d2a4a;border:1px solid var(--gold);color:var(--light);
+  padding:10px 22px;border-radius:999px;font-weight:800;font-size:.9rem;
+  z-index:99;opacity:0;transition:all .3s ease;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* مودال طريقة اللعب */
+.help-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+.help-list li{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:10px 12px;font-size:.88rem;line-height:1.8;
+}
+.dash-upd{margin-top:10px;font-size:.72rem;color:var(--muted);text-align:center}
+
+/* ===== التبويبات ===== */
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.tab-btn{
+  font-family:inherit;flex:1;white-space:nowrap;padding:10px 12px;font-size:.95rem;font-weight:800;
+  color:var(--muted);background:var(--card);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;cursor:pointer;transition:all var(--tr);
+}
+.tab-btn.active{color:var(--dark);background:var(--gold);border-color:var(--gold)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadein .3s ease}
+
+/* ===== كروت المباريات ===== */
+.round-title{font-size:1.1rem;font-weight:900;color:var(--gold);margin:18px 0 10px;text-align:center}
+.round-title:first-child{margin-top:0}
+.match{margin-bottom:12px}
+.m-meta{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--muted);margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.chip{border-radius:999px;padding:2px 10px;font-size:.76rem;font-weight:800}
+.chip.done{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.4)}
+.chip.today{background:rgba(255,184,28,.15);color:var(--gold);border:1px solid rgba(255,184,28,.45)}
+.chip.soon{background:rgba(255,255,255,.1);color:var(--muted);border:1px solid rgba(255,255,255,.2)}
+.m-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;text-align:center}
+.m-team .flag{font-size:1.9rem;display:block}
+.m-team .tname{font-weight:800;font-size:.98rem}
+.m-team.win .tname{color:var(--gold)}
+.m-team.tbd .tname{color:var(--muted);font-weight:700;font-size:.85rem}
+.m-score{font-size:1.5rem;font-weight:900;min-width:74px}
+.m-score .pens{display:block;font-size:.68rem;color:var(--muted);font-weight:700}
+.m-vs{font-size:1.1rem;font-weight:900;color:var(--muted);min-width:74px}
+.preds{margin-top:12px;border-top:1px dashed rgba(255,255,255,.15);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.pred-row{display:flex;align-items:center;gap:8px;font-size:.88rem;flex-wrap:wrap}
+.pred-row .pname{font-weight:900;min-width:52px}
+.pred-row .pval{color:var(--muted)}
+.pred-row .ppts{margin-inline-start:auto;font-weight:900}
+.ppts.good{color:var(--green)}
+.ppts.zero{color:var(--muted)}
+.mini-btn{
+  font-family:inherit;background:rgba(255,255,255,.12);color:var(--light);
+  border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 14px;
+  font-size:.78rem;font-weight:800;cursor:pointer;transition:background var(--tr);
+  margin-inline-start:auto;min-height:36px;
+}
+.mini-btn:hover{background:rgba(255,255,255,.22)}
+.mini-btn.gold{background:rgba(255,184,28,.15);border-color:rgba(255,184,28,.5);color:var(--gold)}
+.m-actions{margin-top:10px;text-align:center}
+.result-btn{
+  font-family:inherit;background:transparent;border:1px solid var(--gold);color:var(--gold);
+  border-radius:12px;padding:6px 16px;font-size:.82rem;font-weight:800;cursor:pointer;transition:all var(--tr);
+}
+.result-btn:hover{background:rgba(255,184,28,.12)}
+
+/* ===== شجرة الأدوار ===== */
+details.r32{margin-bottom:14px}
+details.r32 summary{
+  cursor:pointer;font-weight:900;color:var(--gold);padding:12px 16px;
+  background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);
+  list-style:none;
+}
+details.r32 summary::-webkit-details-marker{display:none}
+details.r32 summary::after{content:'▾';float:inline-end;transition:transform var(--tr)}
+details.r32[open] summary::after{transform:rotate(180deg)}
+.r32-list{display:flex;flex-direction:column;gap:6px;padding:10px 4px}
+.r32-list .row{
+  display:flex;justify-content:space-between;gap:8px;font-size:.85rem;
+  background:rgba(255,255,255,.05);border-radius:10px;padding:7px 10px;flex-wrap:wrap;
+}
+.r32-list .row b{color:var(--gold)}
+.r32-list .note{color:var(--muted);font-size:.72rem;width:100%}
+
+/* ===== الهدافون ===== */
+.scorer{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.scorer:last-child{border-bottom:none}
+.scorer .rank{font-weight:900;color:var(--muted);width:22px;text-align:center}
+.scorer .sflag{font-size:1.5rem}
+.scorer .sinfo{flex:1;min-width:0}
+.scorer .sname{font-weight:800}
+.scorer .steam{font-size:.75rem;color:var(--muted)}
+.scorer .sgoals{font-size:1.4rem;font-weight:900;color:var(--gold)}
+.scorer .sgoals small{font-size:.65rem;color:var(--muted);display:block;text-align:center;font-weight:700}
+.sassist{font-size:.75rem;color:var(--muted);text-align:center;min-width:52px}
+.facts{margin-top:14px}
+.facts li{
+  list-style:none;background:rgba(0,82,204,.12);border:1px solid rgba(0,82,204,.35);
+  border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:.85rem;line-height:1.6;
+}
+
+/* ===== الترتيب ===== */
+.board{display:flex;flex-direction:column;gap:10px}
+.board-row{display:flex;align-items:center;gap:12px;padding:14px}
+.board-row .brank{font-size:1.3rem;font-weight:900;width:30px;text-align:center}
+.board-row .bname{font-weight:900;font-size:1.15rem;flex:1}
+.board-row .bdetail{font-size:.72rem;color:var(--muted)}
+.board-row .bpts{font-size:1.6rem;font-weight:900;color:var(--gold)}
+.board-row .bpts small{font-size:.7rem;color:var(--muted)}
+.board-row.leader{border:1px solid rgba(255,184,28,.5);background:rgba(255,184,28,.08)}
+.board-note{margin-top:12px;font-size:.75rem;color:var(--muted);text-align:center;line-height:1.7}
+
+/* ===== المودال ===== */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);
+  z-index:50;align-items:center;justify-content:center;padding:16px;
+}
+.overlay.open{display:flex}
+.modal{width:100%;max-width:420px;background:#141d33;border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);padding:20px}
+.modal h3{color:var(--gold);margin-bottom:4px;text-align:center}
+.modal .sub{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:14px}
+.score-line{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0 4px}
+.score-line .side{text-align:center;flex:1}
+.score-line .side .flag{font-size:1.7rem;display:block}
+.score-line .side .nm{font-size:.8rem;font-weight:800}
+.score-line input{
+  width:64px;padding:10px;text-align:center;font-size:1.3rem;font-weight:900;font-family:inherit;
+  border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--light);
+}
+.score-line input:focus{outline:none;border-color:var(--gold)}
+.adv-box{margin-top:10px;text-align:center;display:none}
+.adv-box.show{display:block}
+.adv-box .q{font-size:.85rem;font-weight:800;color:var(--gold);margin-bottom:6px}
+.adv-box label{margin:0 10px;font-size:.9rem;font-weight:700;cursor:pointer}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.btn{
+  font-family:inherit;flex:1;padding:11px;border:none;border-radius:12px;
+  font-size:1rem;font-weight:800;cursor:pointer;color:var(--light);transition:filter var(--tr);
+}
+.btn.primary{background:linear-gradient(135deg,var(--red),#900818)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.3)}
+.btn:hover{filter:brightness(1.15)}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:.85rem;font-weight:800;color:var(--gold);margin-bottom:4px}
+.field input{
+  width:100%;padding:9px 12px;font-family:inherit;font-size:1rem;font-weight:700;
+  border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--light);
+}
+.field input:focus{outline:none;border-color:var(--gold)}
+.settings-note{font-size:.75rem;color:var(--muted);line-height:1.7;margin-bottom:12px}
+
+footer{margin-top:22px;text-align:center;font-size:.72rem;color:var(--muted);line-height:1.8}
+
+/* ===== موبايل ===== */
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  #dash{order:-1}
+  #dash .card{padding:12px}
+  .correct-list{flex-direction:column}
+}
+@media (max-width:420px){
+  .title{font-size:1.7rem}
+  .mypts{font-size:2rem}
+  .m-team .tname{font-size:.85rem}
+}
+</style>
 </head>
 <body>
-  <div id="app">
-    <!-- الصفحة الرئيسية -->
-    <section id="home" class="screen active">
-      <h1 class="title">WE ARE 26</h1>
-      <p class="tagline">لعبة توقعات كأس العالم</p>
-      <div class="card home-card">
-        <label for="your-name" class="label">اسمك</label>
-        <input type="text" id="your-name" placeholder="اكتب اسمك هنا" maxlength="20">
-        <div class="actions">
-          <button id="create-room" class="btn primary">إنشاء غرفة</button>
-          <button id="join-room-btn" class="btn secondary">انضمام</button>
-        </div>
-      </div>
-    </section>
+<div id="app">
 
-    <!-- إدخال كود الانضمام -->
-    <section id="join" class="screen">
-      <h2 class="title">أدخل كود الغرفة</h2>
-      <p class="subtitle">ادخل اسمك والكود المكون من 6 أرقام</p>
-      <div class="card join-card">
-        <label for="join-name" class="label">اسمك</label>
-        <input type="text" id="join-name" placeholder="اسمك" maxlength="20">
-        <label for="join-code" class="label">كود الغرفة</label>
-        <input type="number" id="join-code" placeholder="000000" maxlength="6">
-        <div class="actions">
-          <button id="join-room-submit" class="btn primary">انضم</button>
-          <button id="join-back" class="btn ghost">رجوع</button>
-        </div>
-      </div>
-    </section>
+  <!-- شاشة اختيار اللاعب -->
+  <section id="who" class="screen">
+    <h1 class="title">WE ARE 26</h1>
+    <p class="tagline">تحدي توقعات كأس العالم 2026 ⚽</p>
+    <div class="card">
+      <h2>من أنت؟ 👀</h2>
+      <div class="who-btns" id="who-btns"></div>
+      <p class="who-note">نحفظ اختيارك على هذا الجهاز، وأول ما تفتح الموقع مرة ثانية نرحب فيك باسمك مباشرة.</p>
+    </div>
+  </section>
 
-    <!-- الردهة (اللعبة قبل بدء التوقعات) -->
-    <section id="lobby" class="screen">
-      <h2 class="title">غرفة التوقعات</h2>
-      <div class="card lobby-card">
-        <p><strong>الكود:</strong> <span id="room-code-display"></span></p>
-        <h3 class="subtitle">اللاعبون</h3>
-        <ul id="players-list" class="players-list"></ul>
-        <p id="lobby-message" class="message"></p>
-        <div class="lobby-actions">
-          <button id="start-predictions" class="btn primary">بدء التوقعات</button>
-          <button id="exit-room" class="btn ghost">خروج</button>
-        </div>
-      </div>
-    </section>
+  <!-- الشاشة الرئيسية -->
+  <section id="main" class="screen">
+    <h1 class="title">WE ARE 26</h1>
+    <p class="tagline">تحدي توقعات كأس العالم 2026 — البراء × يوسف × حمد</p>
 
-    <!-- صفحة التوقعات -->
-    <section id="predict" class="screen">
-      <h2 class="title">المباراة <span id="match-counter"></span></h2>
-      <div class="card match-card">
-        <div class="teams">
-          <div class="team" id="team-home">
-            <span class="flag" id="flag-home"></span>
-            <span class="name" id="name-home"></span>
-          </div>
-          <div class="vs">VS</div>
-          <div class="team" id="team-away">
-            <span class="flag" id="flag-away"></span>
-            <span class="name" id="name-away"></span>
-          </div>
-        </div>
-        <div class="predict-controls">
-          <label class="winner-label">اختيار الفائز</label>
-          <div class="winner-options">
-            <label>
-              <input type="radio" name="winner" id="winner-home" value="home">
-              <span id="winner-home-name">—</span>
-            </label>
-            <label>
-              <input type="radio" name="winner" id="winner-draw" value="draw">
-              <span>تعادل</span>
-            </label>
-            <label>
-              <input type="radio" name="winner" id="winner-away" value="away">
-              <span id="winner-away-name">—</span>
-            </label>
-          </div>
-          <label class="score-label">النتيجة المتوقعة</label>
-          <div class="score-inputs">
-            <input type="number" id="score-home" min="0" max="9" value="0">
-            <span class="colon">:</span>
-            <input type="number" id="score-away" min="0" max="9" value="0">
-          </div>
-        </div>
-        <div class="predict-actions">
-          <button id="save-prediction" class="btn primary">حفظ التوقع</button>
-          <button id="skip-prediction" class="btn ghost">تجاوز</button>
-        </div>
+    <header class="me">
+      <div class="head-actions">
+        <button class="icon-btn" id="btn-settings">⚙️ الإعدادات</button>
+        <button class="icon-btn" id="btn-switch">🔄 تبديل اللاعب</button>
+        <button class="icon-btn" id="btn-help">❓ طريقة اللعب</button>
       </div>
-    </section>
+      <div class="greet" id="greeting">أهلاً 👋</div>
+      <div class="mypts"><span id="my-points">0</span> <small>نقطة</small></div>
+    </header>
 
-    <!-- صفحة النتائج والجدول -->
-    <section id="results" class="screen">
-      <h2 class="title">النتائج النهائية</h2>
-      <div class="card results-card">
-        <h3 class="subtitle">الترتيب</h3>
-        <ol id="leaderboard" class="leaderboard"></ol>
-        <h3 class="subtitle">تفاصيل الجولات</h3>
-        <div id="history" class="history"></div>
-        <button id="play-again" class="btn primary">جولة جديدة</button>
+    <div class="layout">
+      <!-- الداشبورد -->
+      <aside id="dash">
+        <div class="card">
+          <h3>📊 لوحة سريعة</h3>
+          <div class="wizard">
+            <span class="hat">🧙‍♂️</span>
+            <div>
+              <div class="wname" id="wizard-name">—</div>
+              <div class="wpts" id="wizard-pts">الساحر 🎩 — متصدر التوقعات</div>
+            </div>
+          </div>
+          <h3>✅ آخر التوقعات الصح</h3>
+          <ul class="correct-list" id="correct-list"></ul>
+          <div class="dash-upd">النتائج والإحصائيات محدثة حتى<br>الاثنين 6 يوليو 2026</div>
+        </div>
+      </aside>
+
+      <!-- المحتوى -->
+      <div class="content">
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="predict">🎯 التوقعات</button>
+          <button class="tab-btn" data-tab="bracket">🏆 الأدوار الإقصائية</button>
+          <button class="tab-btn" data-tab="scorers">⚽ الهدافون</button>
+          <button class="tab-btn" data-tab="board">📋 الترتيب</button>
+        </nav>
+
+        <div class="tab-pane active" id="tab-predict"></div>
+        <div class="tab-pane" id="tab-bracket"></div>
+        <div class="tab-pane" id="tab-scorers"></div>
+        <div class="tab-pane" id="tab-board"></div>
       </div>
-    </section>
+    </div>
+
+    <footer>
+      WE ARE 26 · الإصدار 2.0 · بيانات المباريات والهدافين محدثة حتى 6 يوليو 2026<br>
+      التوقعات والنقاط تنحفظ على هذا الجهاز — بعد كل مباراة سجلوا نتيجتها الحقيقية من زر «سجّل النتيجة» وتنحسب النقاط تلقائياً.
+    </footer>
+  </section>
+</div>
+
+<!-- مودال طريقة اللعب -->
+<div class="overlay" id="help-overlay">
+  <div class="modal">
+    <h3>❓ طريقة اللعب</h3>
+    <ul class="help-list">
+      <li>🎯 كل واحد منكم (البراء، يوسف، حمد) يتوقع نتيجة المباراة قبل بدايتها من زر «توقّع» اللي جنب اسمه.</li>
+      <li>📝 بعد نهاية المباراة، أي واحد منكم يسجل النتيجة الحقيقية من زر «سجّل النتيجة النهائية» — والنقاط تنحسب تلقائياً.</li>
+      <li>🏅 النقاط: توقعت المتأهل صح = <b>10 نقاط</b> · وإذا جبت النتيجة بالضبط = <b>+20 إضافية</b> (المجموع 30).</li>
+      <li>🥅 إذا توقعت تعادل، تختار من يتأهل بركلات الترجيح — لأن الأدوار الإقصائية لازم لها متأهل.</li>
+      <li>🧙‍♂️ «الساحر» هو متصدر النقاط — تشوفه دايم في اللوحة السريعة.</li>
+      <li>💾 كل التوقعات والنقاط تنحفظ على هذا الجهاز — الأفضل تلعبون كلكم من نفس الجهاز.</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn primary" id="help-close">فهمت ✅</button>
+    </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<!-- مودال التوقع -->
+<div class="overlay" id="pred-overlay">
+  <div class="modal">
+    <h3 id="pred-title">توقع المباراة</h3>
+    <p class="sub" id="pred-sub"></p>
+    <div class="score-line">
+      <div class="side">
+        <span class="flag" id="pred-flag-h"></span>
+        <span class="nm" id="pred-name-h"></span>
+      </div>
+      <input type="number" id="pred-h" min="0" max="9" value="0" inputmode="numeric">
+      <span style="font-weight:900">:</span>
+      <input type="number" id="pred-a" min="0" max="9" value="0" inputmode="numeric">
+      <div class="side">
+        <span class="flag" id="pred-flag-a"></span>
+        <span class="nm" id="pred-name-a"></span>
+      </div>
+    </div>
+    <div class="adv-box" id="pred-adv">
+      <div class="q">تعادل! من يتأهل بركلات الترجيح؟</div>
+      <label><input type="radio" name="pred-adv" value="home"> <span id="pred-adv-h"></span></label>
+      <label><input type="radio" name="pred-adv" value="away"> <span id="pred-adv-a"></span></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" id="pred-save">حفظ التوقع ✅</button>
+      <button class="btn ghost" id="pred-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال تسجيل النتيجة -->
+<div class="overlay" id="res-overlay">
+  <div class="modal">
+    <h3>📝 تسجيل النتيجة الحقيقية</h3>
+    <p class="sub" id="res-sub">اكتب النتيجة النهائية للمباراة (بعد التمديد إن وجد)</p>
+    <div class="score-line">
+      <div class="side">
+        <span class="flag" id="res-flag-h"></span>
+        <span class="nm" id="res-name-h"></span>
+      </div>
+      <input type="number" id="res-h" min="0" max="20" value="0" inputmode="numeric">
+      <span style="font-weight:900">:</span>
+      <input type="number" id="res-a" min="0" max="20" value="0" inputmode="numeric">
+      <div class="side">
+        <span class="flag" id="res-flag-a"></span>
+        <span class="nm" id="res-name-a"></span>
+      </div>
+    </div>
+    <div class="adv-box" id="res-adv">
+      <div class="q">تعادل! من تأهل بركلات الترجيح؟</div>
+      <label><input type="radio" name="res-adv" value="home"> <span id="res-adv-h"></span></label>
+      <label><input type="radio" name="res-adv" value="away"> <span id="res-adv-a"></span></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" id="res-save">حفظ النتيجة ✅</button>
+      <button class="btn ghost" id="res-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال الإعدادات -->
+<div class="overlay" id="set-overlay">
+  <div class="modal">
+    <h3>⚙️ الإعدادات</h3>
+    <p class="settings-note">إذا كان عندكم نقاط سابقة من جولات قديمة، اكتبوها هنا كـ«نقاط بداية» لكل لاعب — وتنضاف فوق نقاط التوقعات الجديدة تلقائياً.</p>
+    <div id="seed-fields"></div>
+    <div class="modal-actions">
+      <button class="btn primary" id="set-save">حفظ ✅</button>
+      <button class="btn ghost" id="set-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= البيانات الثابتة (محدثة حتى 6 يوليو 2026) ================= */
+
+const PLAYERS = ['البراء','يوسف','حمد'];
+
+const TEAMS = {
+  MA:{n:'المغرب',f:'🇲🇦'}, FR:{n:'فرنسا',f:'🇫🇷'}, NO:{n:'النرويج',f:'🇳🇴'}, EN:{n:'إنجلترا',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+  PT:{n:'البرتغال',f:'🇵🇹'}, ES:{n:'إسبانيا',f:'🇪🇸'}, US:{n:'أمريكا',f:'🇺🇸'}, BE:{n:'بلجيكا',f:'🇧🇪'},
+  AR:{n:'الأرجنتين',f:'🇦🇷'}, EG:{n:'مصر',f:'🇪🇬'}, CH:{n:'سويسرا',f:'🇨🇭'}, CO:{n:'كولومبيا',f:'🇨🇴'},
+  CA:{n:'كندا',f:'🇨🇦'}, PY:{n:'باراغواي',f:'🇵🇾'}, BR:{n:'البرازيل',f:'🇧🇷'}, MX:{n:'المكسيك',f:'🇲🇽'}
+};
+
+/* المباريات الإقصائية من دور الـ16 وطالع.
+   home/away: كود منتخب، أو {w:'id'} فائز مباراة، أو {l:'id'} خاسر مباراة.
+   result موجود = مباراة منتهية (بيانات حقيقية). */
+const MATCHES = [
+  {id:'m1', round:'r16', date:'السبت 4 يوليو',   venue:'هيوستن',                 home:'CA', away:'MA', result:{h:0,a:3}},
+  {id:'m2', round:'r16', date:'السبت 4 يوليو',   venue:'فيلادلفيا',              home:'PY', away:'FR', result:{h:0,a:1}},
+  {id:'m3', round:'r16', date:'الأحد 5 يوليو',    venue:'نيويورك/نيوجيرسي',       home:'BR', away:'NO', result:{h:0,a:2}},
+  {id:'m4', round:'r16', date:'الأحد 5 يوليو',    venue:'ملعب أزتيكا — مكسيكو سيتي', home:'MX', away:'EN', result:{h:2,a:3}},
+  {id:'m5', round:'r16', date:'الاثنين 6 يوليو · 10:00 مساءً 🇸🇦', venue:'دالاس',   home:'PT', away:'ES'},
+  {id:'m6', round:'r16', date:'فجر الثلاثاء 7 يوليو · 3:00 🇸🇦',  venue:'سياتل',   home:'US', away:'BE'},
+  {id:'m7', round:'r16', date:'الثلاثاء 7 يوليو · 7:00 مساءً 🇸🇦', venue:'أتلانتا', home:'AR', away:'EG'},
+  {id:'m8', round:'r16', date:'الثلاثاء 7 يوليو · 11:00 مساءً 🇸🇦', venue:'فانكوفر', home:'CH', away:'CO'},
+
+  {id:'q1', round:'qf', date:'الخميس 9 يوليو',  venue:'بوسطن',       home:'MA', away:'FR'},
+  {id:'q2', round:'qf', date:'الجمعة 10 يوليو', venue:'لوس أنجلوس',  home:{w:'m5'}, away:{w:'m6'}},
+  {id:'q3', round:'qf', date:'السبت 11 يوليو',  venue:'ميامي',       home:'EN', away:'NO'},
+  {id:'q4', round:'qf', date:'السبت 11 يوليو',  venue:'كانساس سيتي', home:{w:'m7'}, away:{w:'m8'}},
+
+  {id:'s1', round:'sf', date:'الثلاثاء 14 يوليو', venue:'دالاس',   home:{w:'q1'}, away:{w:'q2'}},
+  {id:'s2', round:'sf', date:'الأربعاء 15 يوليو', venue:'أتلانتا', home:{w:'q3'}, away:{w:'q4'}},
+
+  {id:'t1', round:'third', date:'السبت 18 يوليو', venue:'ميامي', home:{l:'s1'}, away:{l:'s2'}},
+  {id:'f1', round:'final', date:'الأحد 19 يوليو', venue:'نيويورك/نيوجيرسي', home:{w:'s1'}, away:{w:'s2'}}
+];
+
+const ROUND_NAMES = {r16:'دور الـ16', qf:'ربع النهائي', sf:'نصف النهائي', third:'مباراة المركز الثالث', final:'النهائي 🏆'};
+const ROUND_ORDER = ['r16','qf','sf','third','final'];
+
+/* نتائج دور الـ32 (مكتمل) — للعرض في شجرة الأدوار */
+const R32 = [
+  {w:'🇨🇦 كندا', l:'جنوب أفريقيا 🇿🇦', s:'1 – 0'},
+  {w:'🇧🇷 البرازيل', l:'اليابان 🇯🇵', s:'2 – 1'},
+  {w:'🇵🇾 باراغواي', l:'ألمانيا 🇩🇪', s:'1 – 1', note:'4–3 بركلات الترجيح — مفاجأة مدوية!'},
+  {w:'🇲🇦 المغرب', l:'هولندا 🇳🇱', s:'1 – 1', note:'3–2 بركلات الترجيح'},
+  {w:'🇳🇴 النرويج', l:'ساحل العاج 🇨🇮', s:'2 – 1'},
+  {w:'🇫🇷 فرنسا', l:'السويد 🇸🇪', s:'3 – 0'},
+  {w:'🇲🇽 المكسيك', l:'الإكوادور 🇪🇨', s:'2 – 0'},
+  {w:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 إنجلترا', l:'الكونغو الديمقراطية 🇨🇩', s:'2 – 1'},
+  {w:'🇧🇪 بلجيكا', l:'السنغال 🇸🇳', s:'3 – 2', note:'بعد التمديد'},
+  {w:'🇺🇸 أمريكا', l:'البوسنة والهرسك 🇧🇦', s:'2 – 0'},
+  {w:'🇪🇸 إسبانيا', l:'النمسا 🇦🇹', s:'3 – 0'},
+  {w:'🇵🇹 البرتغال', l:'كرواتيا 🇭🇷', s:'2 – 1'},
+  {w:'🇨🇭 سويسرا', l:'الجزائر 🇩🇿', s:'2 – 0'},
+  {w:'🇪🇬 مصر', l:'أستراليا 🇦🇺', s:'1 – 1', note:'4–2 بركلات الترجيح — أول فوز إقصائي لمصر بتاريخها!'},
+  {w:'🇦🇷 الأرجنتين', l:'كاب فيردي 🇨🇻', s:'3 – 2', note:'بعد التمديد'},
+  {w:'🇨🇴 كولومبيا', l:'غانا 🇬🇭', s:'1 – 0'}
+];
+
+/* الهدافون — سباق الحذاء الذهبي حتى 6 يوليو 2026 */
+const SCORERS = [
+  {n:'كيليان مبابي', t:'فرنسا', f:'🇫🇷', g:7, a:2},
+  {n:'ليونيل ميسي', t:'الأرجنتين', f:'🇦🇷', g:7, a:0},
+  {n:'إيرلينغ هالاند', t:'النرويج', f:'🇳🇴', g:7, a:0},
+  {n:'هاري كين', t:'إنجلترا', f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', g:6, a:1},
+  {n:'عثمان ديمبيلي', t:'فرنسا', f:'🇫🇷', g:4, a:2},
+  {n:'ميكيل أويارزابال', t:'إسبانيا', f:'🇪🇸', g:4, a:1},
+  {n:'كريستيانو رونالدو', t:'البرتغال', f:'🇵🇹', g:3, a:null}
+];
+
+const FACTS = [
+  '😱 البرازيل ودّعت البطولة من دور الـ16 بثنائية هالاند — من أكبر مفاجآت المونديال.',
+  '🎯 ألمانيا وهولندا خرجتا بركلات الترجيح في دور الـ32 أمام باراغواي والمغرب.',
+  '🇪🇬 مصر حققت أول فوز في الأدوار الإقصائية بتاريخها على حساب أستراليا.',
+  '👑 ميسي الهداف التاريخي للمونديال بـ20 هدفاً، ويطارده مبابي بـ19.'
+];
+
+/* نظام النقاط: توقع المتأهل صح = 10 نقاط، والنتيجة بالضبط = 20 نقطة إضافية (المجموع 30) */
+const WINNER_PTS = 10, EXACT_PTS = 20;
+
+/* ================= الحالة والتخزين ================= */
+
+const KEY = 'we26_v2';
+let store = {user:null, seeds:{'البراء':0,'يوسف':0,'حمد':0}, preds:{}, results:{}};
+
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if(raw && typeof raw === 'object'){
+      store.user = raw.user || null;
+      store.seeds = Object.assign({'البراء':0,'يوسف':0,'حمد':0}, raw.seeds || {});
+      store.preds = raw.preds || {};
+      store.results = raw.results || {};
+    }
+  }catch(e){ console.warn('load error', e); }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(store)); }
+  catch(e){ console.warn('save error', e); }
+}
+
+/* ================= منطق الشجرة والنقاط ================= */
+
+const byId = {};
+MATCHES.forEach(m => byId[m.id] = m);
+
+function getResult(m){
+  return m.result || store.results[m.id] || null;
+}
+function winnerSide(res){
+  if(!res) return null;
+  if(res.h > res.a) return 'home';
+  if(res.a > res.h) return 'away';
+  return res.adv || null; // تعادل: المتأهل بركلات الترجيح
+}
+/* يرجع كود المنتخب في خانة home/away أو null إذا ما تحدد بعد */
+function resolveSlot(slot, depth){
+  depth = depth || 0;
+  if(depth > 8) return null;
+  if(typeof slot === 'string') return slot;
+  if(slot && slot.w){
+    const m = byId[slot.w]; if(!m) return null;
+    const res = getResult(m); const ws = winnerSide(res);
+    if(!ws) return null;
+    return resolveSlot(ws === 'home' ? m.home : m.away, depth + 1);
+  }
+  if(slot && slot.l){
+    const m = byId[slot.l]; if(!m) return null;
+    const res = getResult(m); const ws = winnerSide(res);
+    if(!ws) return null;
+    return resolveSlot(ws === 'home' ? m.away : m.home, depth + 1);
+  }
+  return null;
+}
+function slotLabel(slot){
+  if(typeof slot === 'string') return TEAMS[slot].n;
+  const m = slot && byId[slot.w || slot.l];
+  const kind = slot && slot.w ? 'الفائز من' : 'الخاسر من';
+  if(!m) return '؟';
+  const hn = teamShort(m.home), an = teamShort(m.away);
+  return kind + ' (' + hn + ' × ' + an + ')';
+}
+function teamShort(slot){
+  const code = resolveSlot(slot);
+  if(code) return TEAMS[code].n;
+  if(typeof slot === 'object' && slot){
+    const m = byId[slot.w || slot.l];
+    if(m) return slot.w ? 'فائز ' + ROUND_NAMES[m.round] : 'خاسر ' + ROUND_NAMES[m.round];
+  }
+  return '؟';
+}
+function teamInfo(m, side){
+  const code = resolveSlot(m[side]);
+  if(code) return {code, n:TEAMS[code].n, f:TEAMS[code].f, tbd:false};
+  return {code:null, n:slotLabel(m[side]), f:'❔', tbd:true};
+}
+function matchReady(m){ /* الفريقان معروفان */
+  return !!(resolveSlot(m.home) && resolveSlot(m.away));
+}
+function predictedSide(p){
+  if(!p) return null;
+  if(p.h > p.a) return 'home';
+  if(p.a > p.h) return 'away';
+  return p.adv || null;
+}
+/* نقاط لاعب في مباراة (null إذا ما فيه نتيجة أو ما توقع) */
+function pointsFor(player, m){
+  const res = getResult(m);
+  const p = (store.preds[m.id] || {})[player];
+  if(!res || !p) return null;
+  let pts = 0;
+  const pw = predictedSide(p), rw = winnerSide(res);
+  if(pw && rw && pw === rw){
+    pts += WINNER_PTS;
+    /* النتيجة بالضبط تنحسب فقط إذا كان المتأهل صح أيضاً */
+    if(p.h === res.h && p.a === res.a) pts += EXACT_PTS;
+  }
+  return pts;
+}
+function predPoints(player){
+  let sum = 0;
+  MATCHES.forEach(m => { const v = pointsFor(player, m); if(v) sum += v; });
+  return sum;
+}
+function totalFor(player){
+  return (Number(store.seeds[player]) || 0) + predPoints(player);
+}
+function standings(){
+  return PLAYERS.map(p => ({p, total: totalFor(p)})).sort((a,b) => b.total - a.total);
+}
+/* آخر التوقعات الصحيحة (نقاط > 0) — الأحدث حسب ترتيب الأدوار أخيراً */
+function correctPreds(){
+  const list = [];
+  MATCHES.forEach(m => {
+    PLAYERS.forEach(pl => {
+      const v = pointsFor(pl, m);
+      if(v && v > 0){
+        const h = teamInfo(m,'home'), a = teamInfo(m,'away');
+        list.push({player:pl, label:h.n + ' × ' + a.n, pts:v, exact:v >= EXACT_PTS});
+      }
+    });
+  });
+  return list.slice(-6).reverse();
+}
+
+/* ================= الواجهة ================= */
+
+function $(id){ return document.getElementById(id); }
+
+const MATCH_DAYS = {m1:'2026-07-04',m2:'2026-07-04',m3:'2026-07-05',m4:'2026-07-05',m5:'2026-07-06',m6:'2026-07-07',m7:'2026-07-07',m8:'2026-07-07',q1:'2026-07-09',q2:'2026-07-10',q3:'2026-07-11',q4:'2026-07-11',s1:'2026-07-14',s2:'2026-07-15',t1:'2026-07-18',f1:'2026-07-19'};
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(name).classList.add('active');
+}
+
+function statusChip(m){
+  const res = getResult(m);
+  if(res) return '<span class="chip done">منتهية ✅</span>';
+  if(MATCH_DAYS[m.id] === todayISO()) return '<span class="chip today">اليوم 🔥</span>';
+  if(matchReady(m)) return '<span class="chip soon">قادمة</span>';
+  return '<span class="chip soon">بانتظار المتأهلين</span>';
+}
+
+function scoreHTML(m){
+  const res = getResult(m);
+  if(!res) return '<div class="m-vs">VS</div>';
+  let pens = '';
+  const ws = winnerSide(res);
+  if(res.h === res.a && ws){
+    const t = teamInfo(m, ws);
+    pens = '<span class="pens">' + t.n + ' تأهل بركلات الترجيح</span>';
+  }
+  return '<div class="m-score">' + res.h + ' – ' + res.a + pens + '</div>';
+}
+
+function teamsHTML(m){
+  const h = teamInfo(m,'home'), a = teamInfo(m,'away');
+  const ws = winnerSide(getResult(m));
+  return '<div class="m-teams">' +
+    '<div class="m-team ' + (h.tbd ? 'tbd' : '') + (ws === 'home' ? ' win' : '') + '"><span class="flag">' + h.f + '</span><span class="tname">' + h.n + '</span></div>' +
+    scoreHTML(m) +
+    '<div class="m-team ' + (a.tbd ? 'tbd' : '') + (ws === 'away' ? ' win' : '') + '"><span class="flag">' + a.f + '</span><span class="tname">' + a.n + '</span></div>' +
+  '</div>';
+}
+
+function predText(m, p){
+  if(!p) return '<span class="pval">ما توقع بعد</span>';
+  let t = '<span class="pval">' + p.h + ' – ' + p.a;
+  const side = predictedSide(p);
+  if(side){
+    const ti = teamInfo(m, side);
+    t += ' · يتأهل ' + ti.n;
+  }
+  return t + '</span>';
+}
+
+function predRowsHTML(m){
+  const res = getResult(m);
+  const ready = matchReady(m);
+  let html = '<div class="preds">';
+  PLAYERS.forEach(pl => {
+    const p = (store.preds[m.id] || {})[pl];
+    html += '<div class="pred-row"><span class="pname">' + pl + '</span>' + predText(m, p);
+    if(res){
+      const v = pointsFor(pl, m);
+      if(v === null) html += '<span class="ppts zero">—</span>';
+      else if(v > 0) html += '<span class="ppts good">+' + v + (v >= EXACT_PTS ? ' 🎯' : '') + '</span>';
+      else html += '<span class="ppts zero">0</span>';
+    } else if(ready){
+      html += '<button class="mini-btn' + (pl === store.user ? ' gold' : '') + '" data-pred-m="' + m.id + '" data-pred-p="' + pl + '">' + (p ? 'عدّل ✏️' : 'توقّع 🎯') + '</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function matchCardHTML(m, withPreds){
+  let html = '<div class="card match" id="match-' + m.id + (withPreds ? '' : '-b') + '">';
+  html += '<div class="m-meta"><span>📅 ' + m.date + ' · 🏟️ ' + m.venue + '</span>' + statusChip(m) + '</div>';
+  html += teamsHTML(m);
+  if(withPreds){
+    html += predRowsHTML(m);
+    const res = getResult(m);
+    if(!res && matchReady(m)){
+      html += '<div class="m-actions"><button class="result-btn" data-res-m="' + m.id + '">📝 سجّل النتيجة النهائية (بعد انتهاء المباراة)</button></div>';
+    } else if(!res && !matchReady(m)){
+      html += '<div class="m-actions" style="font-size:.75rem;color:var(--muted)">ينفتح التوقع تلقائياً أول ما يتحدد الطرفان</div>';
+    } else if(res && !m.result){
+      html += '<div class="m-actions"><button class="result-btn" data-res-m="' + m.id + '">✏️ تعديل النتيجة</button></div>';
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderPredict(){
+  let html = '';
+  ROUND_ORDER.forEach(r => {
+    const ms = MATCHES.filter(m => m.round === r);
+    if(!ms.length) return;
+    html += '<div class="round-title">' + ROUND_NAMES[r] + '</div>';
+    ms.forEach(m => { html += matchCardHTML(m, true); });
+  });
+  $('tab-predict').innerHTML = html;
+}
+
+function renderBracket(){
+  let html = '<details class="r32"><summary>دور الـ32 — مكتمل (اضغط للعرض)</summary><div class="r32-list">';
+  R32.forEach(r => {
+    html += '<div class="row"><span><b>' + r.w + '</b> ' + r.s + ' ' + r.l + '</span>' + (r.note ? '<span class="note">' + r.note + '</span>' : '') + '</div>';
+  });
+  html += '</div></details>';
+  ROUND_ORDER.forEach(rd => {
+    const ms = MATCHES.filter(m => m.round === rd);
+    if(!ms.length) return;
+    html += '<div class="round-title">' + ROUND_NAMES[rd] + '</div>';
+    ms.forEach(m => { html += matchCardHTML(m, false); });
+  });
+  $('tab-bracket').innerHTML = html;
+}
+
+function renderScorers(){
+  let html = '<div class="card">';
+  SCORERS.forEach((s, i) => {
+    html += '<div class="scorer"><span class="rank">' + (i+1) + '</span><span class="sflag">' + s.f + '</span>' +
+      '<div class="sinfo"><div class="sname">' + s.n + '</div><div class="steam">' + s.t + '</div></div>' +
+      '<span class="sassist">' + (s.a === null ? '' : '🅰️ ' + s.a + ' صناعة') + '</span>' +
+      '<span class="sgoals">' + s.g + '<small>أهداف</small></span></div>';
+  });
+  html += '</div><div class="card" style="margin-top:12px"><h3 style="color:var(--gold);margin-bottom:8px">🔥 حقائق البطولة</h3><ul class="facts">';
+  FACTS.forEach(f => { html += '<li>' + f + '</li>'; });
+  html += '</ul><p style="font-size:.78rem;color:var(--muted)">سباق الحذاء الذهبي: تعادل ثلاثي بالصدارة (7 أهداف) — عند التساوي تُحسم بالتمريرات الحاسمة، ومبابي متقدم بصناعتين.</p></div>';
+  $('tab-scorers').innerHTML = html;
+}
+
+function renderBoard(){
+  const st = standings();
+  const medals = ['🥇','🥈','🥉'];
+  let html = '<div class="board">';
+  st.forEach((row, i) => {
+    const seed = Number(store.seeds[row.p]) || 0;
+    html += '<div class="card board-row' + (i === 0 && row.total > 0 ? ' leader' : '') + '">' +
+      '<span class="brank">' + medals[i] + '</span>' +
+      '<div style="flex:1"><div class="bname">' + row.p + (i === 0 && row.total > 0 ? ' 👑' : '') + '</div>' +
+      '<div class="bdetail">نقاط بداية: ' + seed + ' · نقاط التوقعات: ' + predPoints(row.p) + '</div></div>' +
+      '<span class="bpts">' + row.total + ' <small>نقطة</small></span></div>';
+  });
+  html += '</div><p class="board-note">التوقع الصحيح للمتأهل = ' + WINNER_PTS + ' نقاط · النتيجة بالضبط = ' + EXACT_PTS + ' نقطة إضافية (المجموع 30)<br>البيانات محفوظة على هذا الجهاز — الأفضل تتوقعون كلكم من نفس الجهاز.</p>';
+  $('tab-board').innerHTML = html;
+}
+
+function renderDash(){
+  const st = standings();
+  const top = st[0];
+  const tied = st.filter(r => r.total === top.total);
+  if(top.total > 0){
+    $('wizard-name').textContent = tied.length > 1 ? tied.map(r => r.p).join(' و ') : top.p;
+    $('wizard-pts').textContent = 'الساحر 🎩 — ' + top.total + ' نقطة';
+  } else {
+    $('wizard-name').textContent = 'ما فيه ساحر بعد';
+    $('wizard-pts').textContent = 'أول من يجمع نقاط يتوّج ساحراً';
+  }
+  const list = correctPreds();
+  if(list.length){
+    $('correct-list').innerHTML = list.map(c =>
+      '<li>✅ <b>' + c.player + '</b> — ' + c.label + ' <span class="cpts">+' + c.pts + '</span>' + (c.exact ? ' 🎯 نتيجة بالضبط!' : '') + '</li>'
+    ).join('');
+  } else {
+    $('correct-list').innerHTML = '<li class="dash-empty">ما فيه توقعات صحيحة بعد — توقعوا مباريات اليوم! 🎯</li>';
+  }
+}
+
+function renderHeader(returning){
+  $('greeting').textContent = (returning ? 'أهلاً بعودتك يا ' : 'أهلاً يا ') + store.user + ' 👋';
+  $('my-points').textContent = totalFor(store.user);
+}
+
+function renderAll(returning){
+  renderHeader(returning);
+  renderDash();
+  renderPredict();
+  renderBracket();
+  renderScorers();
+  renderBoard();
+}
+
+/* ================= المودالات ================= */
+
+let modalMatch = null, modalPlayer = null;
+
+function fillSides(prefix, m){
+  const h = teamInfo(m,'home'), a = teamInfo(m,'away');
+  $(prefix + '-flag-h').textContent = h.f; $(prefix + '-name-h').textContent = h.n;
+  $(prefix + '-flag-a').textContent = a.f; $(prefix + '-name-a').textContent = a.n;
+  $(prefix + '-adv-h').textContent = h.n; $(prefix + '-adv-a').textContent = a.n;
+}
+function toggleAdv(prefix){
+  const h = parseInt($(prefix + '-h').value, 10) || 0;
+  const a = parseInt($(prefix + '-a').value, 10) || 0;
+  $(prefix + '-adv').classList.toggle('show', h === a);
+}
+function openPred(mId, player){
+  const m = byId[mId];
+  if(!m || !matchReady(m) || getResult(m)) return;
+  modalMatch = mId; modalPlayer = player;
+  $('pred-title').textContent = 'توقع ' + player;
+  $('pred-sub').textContent = ROUND_NAMES[m.round] + ' · ' + m.date;
+  fillSides('pred', m);
+  const p = (store.preds[mId] || {})[player];
+  $('pred-h').value = p ? p.h : 0;
+  $('pred-a').value = p ? p.a : 0;
+  document.querySelectorAll('input[name="pred-adv"]').forEach(r => { r.checked = !!(p && p.adv === r.value); });
+  toggleAdv('pred');
+  $('pred-overlay').classList.add('open');
+}
+function savePred(){
+  const m = byId[modalMatch];
+  if(!m) return;
+  let h = Math.min(9, Math.max(0, parseInt($('pred-h').value, 10) || 0));
+  let a = Math.min(9, Math.max(0, parseInt($('pred-a').value, 10) || 0));
+  let adv = null;
+  if(h === a){
+    const r = document.querySelector('input[name="pred-adv"]:checked');
+    if(!r){ alert('توقعت تعادل — اختر من يتأهل بركلات الترجيح 🙏'); return; }
+    adv = r.value;
+  }
+  if(!store.preds[modalMatch]) store.preds[modalMatch] = {};
+  store.preds[modalMatch][modalPlayer] = {h, a, adv};
+  const who = modalPlayer;
+  save();
+  closeModals();
+  renderAll(true);
+  toast('✅ انحفظ توقع ' + who + '!');
+}
+function snapshotTeams(){
+  const snap = {};
+  MATCHES.forEach(m => { snap[m.id] = (resolveSlot(m.home) || '؟') + '|' + (resolveSlot(m.away) || '؟'); });
+  return snap;
+}
+function openResult(mId){
+  const m = byId[mId];
+  if(!m || m.result || !matchReady(m)) return;
+  modalMatch = mId;
+  $('res-sub').textContent = teamInfo(m,'home').n + ' × ' + teamInfo(m,'away').n + ' — النتيجة النهائية (بعد التمديد إن وجد)';
+  fillSides('res', m);
+  const r = store.results[mId];
+  $('res-h').value = r ? r.h : 0;
+  $('res-a').value = r ? r.a : 0;
+  document.querySelectorAll('input[name="res-adv"]').forEach(x => { x.checked = !!(r && r.adv === x.value); });
+  toggleAdv('res');
+  $('res-overlay').classList.add('open');
+}
+function saveResult(){
+  const m = byId[modalMatch];
+  if(!m) return;
+  let h = Math.min(20, Math.max(0, parseInt($('res-h').value, 10) || 0));
+  let a = Math.min(20, Math.max(0, parseInt($('res-a').value, 10) || 0));
+  let adv = null;
+  if(h === a){
+    const r = document.querySelector('input[name="res-adv"]:checked');
+    if(!r){ alert('المباراة تعادل — حدد من تأهل بركلات الترجيح 🙏'); return; }
+    adv = r.value;
+  }
+  const before = snapshotTeams();
+  store.results[modalMatch] = {h, a, adv};
+  /* إذا تغيّر طرفا مباراة لاحقة (بعد تعديل نتيجة) نمسح توقعاتها ونتيجتها القديمة لأنها صارت بلا معنى.
+     نكرر حتى الثبات لأن مسح نتيجة قد يغيّر مباريات أبعد في الشجرة. */
+  let changed = true, guard = 0;
+  while(changed && guard < 20){
+    changed = false; guard++;
+    const after = snapshotTeams();
+    MATCHES.forEach(x => {
+      if(x.id === modalMatch || before[x.id] === after[x.id]) return;
+      before[x.id] = after[x.id];
+      if(store.preds[x.id]){ delete store.preds[x.id]; changed = true; }
+      if(!x.result && store.results[x.id]){ delete store.results[x.id]; changed = true; }
+    });
+  }
+  save();
+  closeModals();
+  renderAll(true);
+  toast('✅ انحفظت النتيجة وانحسبت النقاط');
+}
+function openSettings(){
+  let html = '';
+  PLAYERS.forEach((p, i) => {
+    html += '<div class="field"><label>نقاط بداية ' + p + '</label><input type="number" id="seed-' + i + '" min="0" max="9999" inputmode="numeric" value="' + (Number(store.seeds[p]) || 0) + '"></div>';
+  });
+  $('seed-fields').innerHTML = html;
+  $('set-overlay').classList.add('open');
+}
+function saveSettings(){
+  PLAYERS.forEach((p, i) => {
+    store.seeds[p] = Math.min(9999, Math.max(0, parseInt($('seed-' + i).value, 10) || 0));
+  });
+  save();
+  closeModals();
+  renderAll(true);
+  toast('✅ تم الحفظ');
+}
+function closeModals(){
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('open'));
+  modalMatch = null; modalPlayer = null;
+}
+
+let toastTimer = null;
+function toast(msg){
+  let el = document.querySelector('.toast');
+  if(!el){ el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1900);
+}
+
+/* ================= الأحداث ================= */
+
+function bind(){
+  /* أزرار من أنت */
+  $('who-btns').innerHTML = PLAYERS.map(p => '<button class="who-btn" data-user="' + p + '">🙋‍♂️ ' + p + '</button>').join('');
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('button');
+    if(!t) return;
+    if(t.dataset.user){
+      const returning = !!store.user && store.user === t.dataset.user;
+      store.user = t.dataset.user;
+      save();
+      showScreen('main');
+      renderAll(returning);
+      toast('أهلاً يا ' + store.user + ' 👋 هذي توقعاتك ونقاطك');
+      return;
+    }
+    if(t.dataset.tab){
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      t.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      $('tab-' + t.dataset.tab).classList.add('active');
+      return;
+    }
+    if(t.dataset.predM){ openPred(t.dataset.predM, t.dataset.predP); return; }
+    if(t.dataset.resM){ openResult(t.dataset.resM); return; }
+  });
+
+  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-switch').addEventListener('click', () => { showScreen('who'); });
+  $('btn-help').addEventListener('click', () => { $('help-overlay').classList.add('open'); });
+  $('help-close').addEventListener('click', closeModals);
+
+  $('pred-save').addEventListener('click', savePred);
+  $('pred-cancel').addEventListener('click', closeModals);
+  $('res-save').addEventListener('click', saveResult);
+  $('res-cancel').addEventListener('click', closeModals);
+  $('set-save').addEventListener('click', saveSettings);
+  $('set-cancel').addEventListener('click', closeModals);
+
+  ['pred','res'].forEach(prefix => {
+    ['-h','-a'].forEach(suffix => {
+      $(prefix + suffix).addEventListener('input', () => toggleAdv(prefix));
+    });
+  });
+
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.addEventListener('click', (e) => { if(e.target === o) closeModals(); });
+  });
+}
+
+/* ================= التشغيل ================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+  load();
+  bind();
+  if(store.user && PLAYERS.includes(store.user)){
+    showScreen('main');
+    renderAll(true);
+  } else {
+    store.user = null;
+    showScreen('who');
+  }
+});
+
+})();
+</script>
 </body>
 </html>
